@@ -1,0 +1,6 @@
+{
+  "name": "Meetverse Waitlist",
+  "description": "A minimalist, responsive waitlist page with email collection and social proof.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
