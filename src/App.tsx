@@ -1,204 +1,190 @@
-import { useState } from 'react'
-import './index.css'
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowDown, X, CheckCircle } from 'lucide-react';
+import './index.css';
+import './App.css';
 
-const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/28284462/444bmro/'
-
-async function submitToWebhook(name: string, email: string) {
-  const res = await fetch(ZAPIER_WEBHOOK_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name: name,
-      email: email,
-      submittedAt: new Date().toISOString(),
-    }),
-  })
-  return res
-}
-
-/* ── Cloud SVG component ── */
-function Cloud({ className }: { className: string }) {
-  return (
-    <div className={`cloud ${className}`}>
-      <svg width="120" height="50" viewBox="0 0 120 50">
-        <ellipse cx="60" cy="35" rx="55" ry="15" />
-        <ellipse cx="35" cy="25" rx="25" ry="18" />
-        <ellipse cx="70" cy="20" rx="30" ry="22" />
-        <ellipse cx="50" cy="28" rx="35" ry="16" />
-      </svg>
-    </div>
-  )
-}
+import desktopBg from '../assets/Bg.png';
+import logo from '../assets/Logo.png';
 
 function App() {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [showModal, setShowModal] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || !email.trim()) return
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError('');
 
-    setStatus('loading')
     try {
-      await submitToWebhook(name.trim(), email.trim())
-      setStatus('success')
-      setName('')
-      setEmail('')
-    } catch {
-      setStatus('error')
-    }
-  }
+      // Replace this URL with your Zapier Webhook URL
+      const zapierWebhookUrl = 'https://hooks.zapier.com/hooks/catch/28284462/444bmro/';
 
-  const openModal = () => {
-    setShowModal(true)
-    setStatus('idle')
-  }
+      const response = await fetch(zapierWebhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new URLSearchParams(formData),
+      });
+
+      if (response.type !== 'opaque' && !response.ok) {
+        throw new Error('Failed to submit');
+      }
+
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const closeModal = () => {
-    setShowModal(false)
-    setStatus('idle')
-    setName('')
-    setEmail('')
-  }
+    setIsModalOpen(false);
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormData({ name: '', email: '' });
+    }, 300);
+  };
 
   return (
-    <div className="page-wrapper">
-      <div className="page-card">
-        {/* ── Floating clouds ── */}
-        <div className="clouds">
-          <Cloud className="cloud-1" />
-          <Cloud className="cloud-2" />
-          <Cloud className="cloud-3" />
+    <div className="app-container">
+      {/* Header */}
+      <header className="header-container">
+        <div className="logo-container">
+          <img src={logo} alt="Meetverse Logo" className="logo-img" />
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="btn-primary join-btn-sm"
+        >
+          Join The Waitlist
+        </button>
+      </header>
 
-        {/* ── Nav ── */}
-        <nav className="nav">
-          <img
-            src="/assets/Logo.png"
-            alt="Meetverse"
-            className="nav-logo"
-          />
-          <button className="nav-cta" onClick={openModal}>
+      {/* Main Content */}
+      <main className="main-container">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hero-content"
+        >
+          {/* <span className="hero-subtitle">Get Hyped</span> */}
+          <h1 className="hero-title">
+            Poised To Become The First Ever Truely Recognized Social Platform for Africans 
+          </h1>
+          <p className="hero-description">
+            Thank you for taking the time to support our journey. We're building a dedicated space to connect, share, and celebrate our vibrant communities. Join the waitlist to be part of the movement from day one.
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn-primarytwo join-btn-lg"
+          >
             Join The Waitlist
+            <ArrowDown />
           </button>
-        </nav>
+        </motion.div>
+      </main>
 
-        {/* ── Hero ── */}
-        <section className="hero">
-          <div className="hero-content">
-            <p className="hero-eyebrow">Get Hyped</p>
-            <h1 className="hero-heading">
-              Meetverse Is Launching Soon!
-            </h1>
-            <p className="hero-sub">
-              The ultimate community for Africans is being redefined. Be one of
-              the first to join our brand new tribe. Join the{' '}
-              <strong>waitlist</strong> to get exclusive early access!
-            </p>
+      {/* Background Images */}
+      <div className="bg-container">
+        <img 
+          src={desktopBg} 
+          alt="People illustration" 
+          className="bg-img"
+        />
+      </div>
 
-            <div className="hero-cta-row">
-              <button className="hero-cta" onClick={openModal}>
-                Join The Waitlist
-                <span className="arrow-circle">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12l7 7 7-7" />
-                  </svg>
-                </span>
+      {/* Modal Form */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="modal-overlay">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="modal-content"
+            >
+              <button 
+                onClick={closeModal}
+                className="modal-close-btn"
+              >
+                <X />
               </button>
-              <span className="rocket-icon" role="img" aria-label="rocket">🚀</span>
-            </div>
-          </div>
-
-          {/* ── Hero Illustration ── */}
-          <div className="hero-illustration">
-            <img
-              src="/assets/hero_people.png"
-              alt="Diverse group of young Africans representing the Meetverse community"
-            />
-          </div>
-        </section>
-
-        {/* ── Footer ── */}
-        <footer className="footer">
-          <p>© 2026 Meetverse · All rights reserved</p>
-        </footer>
-
-        {/* ── Modal ── */}
-        {showModal && (
-          <div className="modal-overlay" onClick={(e) => {
-            if (e.target === e.currentTarget) closeModal()
-          }}>
-            <div className="modal-card">
-              <button className="modal-close" onClick={closeModal}>✕</button>
-
-              {status === 'success' ? (
-                <div className="success-card">
-                  <div className="success-icon">
-                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <h2 className="success-title">You're on the list! 🎉</h2>
-                  <p className="success-text">
-                    We'll be in touch soon with exclusive updates.<br />
-                    Get ready for something amazing.
-                  </p>
+              
+              {isSubmitted ? (
+                <div style={{ textAlign: 'center', padding: '2rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <CheckCircle style={{ width: '4rem', height: '4rem', color: '#fe610d', marginBottom: '1rem' }} />
+                  <h2 className="modal-title">You're on the list!</h2>
+                  <p className="modal-description">Thank you for joining the Meetverse waitlist. We'll be in touch soon.</p>
+                  <button 
+                    onClick={closeModal}
+                    className="btn-primary form-submit-btn"
+                    style={{ marginTop: '1rem' }}
+                  >
+                    Done
+                  </button>
                 </div>
               ) : (
                 <>
-                  <h2 className="modal-title">Join The Waitlist</h2>
-                  <p className="modal-subtitle">
-                    Be among the first to experience Meetverse. Drop your details below and we'll notify you at launch.
-                  </p>
-                  <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="waitlist-name">Your Name</label>
+                  <h2 className="modal-title">Join the Movement</h2>
+                  <p className="modal-description">Enter your details to get early access.</p>
+
+                  <form onSubmit={handleSubmit} className="form-container">
+                    <div>
+                      <label htmlFor="name" className="form-label">
+                        Full Name
+                      </label>
                       <input
-                        id="waitlist-name"
                         type="text"
+                        id="name"
                         required
-                        placeholder="e.g. Amara Johnson"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="form-input"
+                        placeholder="John Doe"
                       />
                     </div>
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="waitlist-email">Email Address</label>
+                    <div>
+                      <label htmlFor="email" className="form-label">
+                        Email Address
+                      </label>
                       <input
-                        id="waitlist-email"
                         type="email"
+                        id="email"
                         required
-                        placeholder="name@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="form-input"
+                        placeholder="john@example.com"
                       />
                     </div>
+                    {error && (
+                      <p style={{ color: '#c92a2a', fontSize: '0.875rem', marginTop: '0.5rem', marginBottom: '0' }}>
+                        {error}
+                      </p>
+                    )}
                     <button
                       type="submit"
-                      disabled={status === 'loading'}
-                      className="form-submit"
+                      disabled={isSubmitting}
+                      className="btn-primary form-submit-btn"
+                      style={{ opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
                     >
-                      {status === 'loading' ? 'Joining...' : 'Join The Waitlist 🚀'}
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
                     </button>
-                    {status === 'error' && (
-                      <p className="form-error">Something went wrong. Please try again.</p>
-                    )}
                   </form>
                 </>
               )}
-            </div>
+            </motion.div>
           </div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
